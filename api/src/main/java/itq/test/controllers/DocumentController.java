@@ -1,11 +1,14 @@
 package itq.test.controllers;
 
 import itq.test.dto.CreateDocumentRequest;
+import itq.test.dto.DocumentApproveRequest;
+import itq.test.dto.DocumentFilterSearchRequest;
 import itq.test.dto.DocumentHistoryResponse;
 import itq.test.dto.FindDocumentHistoryRequest;
 import itq.test.dto.DocumentListRequest;
 import itq.test.entities.Document;
 import itq.test.services.DocumentService;
+import itq.test.services.ParallelDocumentService;
 import itq.test.services.UpdateStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,7 @@ import java.util.List;
 public class DocumentController {
 
     private final DocumentService documentService;
+    private final ParallelDocumentService parallelDocumentService;
 
     @PostMapping("/create")
     public ResponseEntity<String> create(@Valid @RequestBody CreateDocumentRequest request) {
@@ -37,7 +41,7 @@ public class DocumentController {
                     request.getAuthor()
         );
 
-        return new ResponseEntity<>("ok", HttpStatus.CREATED);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/history")
@@ -54,26 +58,36 @@ public class DocumentController {
 
     @PostMapping("/search")
     public ResponseEntity<List<Document>> search(@Valid @RequestBody DocumentListRequest request, @PageableDefault(
-            page = 0,
-            size = 20,
             sort = "createdAt",
             direction = Sort.Direction.ASC
     ) Pageable pageable) {
         var page = documentService.findDocuments(request.getDocs(), pageable);
-        return new ResponseEntity<>(page.getContent(), HttpStatus.CREATED);
+        return new ResponseEntity<>(page.getContent(), HttpStatus.OK);
     }
-
-
 
     @PostMapping("/submit")
     public ResponseEntity<HashMap<Long, UpdateStatus>> submit(@Valid @RequestBody DocumentListRequest request) {
         var result = documentService.submitDocuments(request.getDocs());
-        return new ResponseEntity<>(result, HttpStatus.CREATED);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @PostMapping("/approve")
     public ResponseEntity<HashMap<Long, UpdateStatus>> approve(@Valid @RequestBody DocumentListRequest request) {
         var result = documentService.approveDocuments(request.getDocs());
-        return new ResponseEntity<>(result, HttpStatus.CREATED);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
+
+    @PostMapping("/filter")
+    public ResponseEntity<List<Document>> searchFilters(@Valid @RequestBody DocumentFilterSearchRequest request) {
+        return new ResponseEntity<>(documentService.searchFilters(request), HttpStatus.OK);
+    }
+
+    @PostMapping("/submitParallel")
+    public ResponseEntity<List<UpdateStatus>> searchFilters(@Valid @RequestBody DocumentApproveRequest request) {
+        return new ResponseEntity<>(
+                parallelDocumentService.submitDoc(request.getId(), request.getThreads(), request.getAttempts()),
+                HttpStatus.OK);
+    }
+
+
 }

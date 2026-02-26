@@ -1,5 +1,6 @@
 package itq.test.services;
 
+import itq.test.dto.DocumentFilterSearchRequest;
 import itq.test.entities.ApprovalRegistry;
 import itq.test.entities.Document;
 import itq.test.entities.DocumentHistory;
@@ -10,10 +11,12 @@ import itq.test.repositories.DocumentHistoryRepository;
 import itq.test.repositories.DocumentRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.sql.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
@@ -60,12 +63,7 @@ public class DocumentService {
                 continue;
             }
             try {
-                doc.setStatus(DocumentStatus.SUBMITTED);
-                documentRepository.saveAndFlush(doc);
-                var docHistory = new DocumentHistory();
-                docHistory.setDocumentId(doc.getId());
-                docHistory.setAction(ActionType.SUBMIT);
-                documentHistory.save(docHistory);
+                submitDocument(doc);
             } catch (Exception e) {
                 log.error("Exception", e);
                 processed.replace(doc.getId(), UpdateStatus.ERROR);
@@ -78,6 +76,17 @@ public class DocumentService {
         return processed;
     }
 
+    @Transactional
+    private void submitDocument(Document doc) {
+        doc.setStatus(DocumentStatus.SUBMITTED);
+        var docHistory = new DocumentHistory();
+        docHistory.setDocumentId(doc.getId());
+        docHistory.setAction(ActionType.SUBMIT);
+        documentHistory.save(docHistory);
+        documentRepository.save(doc);
+    }
+
+
     public HashMap<Long, UpdateStatus> approveDocuments(List<Long> docs) {
         var otherDocs = documentRepository.findAllById(docs);
         var processed = new HashMap<Long, UpdateStatus>();
@@ -88,18 +97,7 @@ public class DocumentService {
                 continue;
             }
             try {
-                doc.setStatus(DocumentStatus.APPROVED);
-                var docHistory = new DocumentHistory();
-                docHistory.setDocumentId(doc.getId());
-                docHistory.setAction(ActionType.APPROVE);
-                var approval = new ApprovalRegistry();
-                approval.setDocumentId(doc.getId());
-                approval.setApprovedBy("somemail@mail.com");
-
-                approvalRepository.save(approval);
-                documentHistory.save(docHistory);
-                documentRepository.save(doc);
-
+                approveDocument(doc);
             } catch (Exception e) {
                 log.error("Exception", e);
                 processed.replace(doc.getId(), UpdateStatus.ERROR);
@@ -111,6 +109,47 @@ public class DocumentService {
                 processed.put(k, UpdateStatus.NOT_FOUND);
         });
         return processed;
+    }
+
+    @Transactional
+    private void approveDocument(Document doc) {
+        doc.setStatus(DocumentStatus.APPROVED);
+        var docHistory = new DocumentHistory();
+        docHistory.setDocumentId(doc.getId());
+        docHistory.setAction(ActionType.APPROVE);
+
+        var approval = new ApprovalRegistry();
+        approval.setDocumentId(doc.getId());
+        approval.setApprovedBy("somemail@mail.com");
+        approvalRepository.save(approval);
+        documentHistory.save(docHistory);
+        documentRepository.save(doc);
+    }
+
+    public UpdateStatus approveDocument(long id) {
+        var wDoc = documentRepository.findById(id);
+
+        if(wDoc.isEmpty())
+            return UpdateStatus.NOT_FOUND;
+
+        var doc = wDoc.get();
+
+        if (doc.getStatus() != DocumentStatus.SUBMITTED) {
+            return UpdateStatus.CONFLICT;
+        }
+
+        try {
+            approveDocument(doc);
+        } catch (Exception e) {
+            log.error("Exception", e);
+            return UpdateStatus.ERROR;
+        }
+
+        return UpdateStatus.SUCCESS;
+    }
+
+    public List<Document> searchFilters(DocumentFilterSearchRequest filters) {
+        return documentRepository.findAll(Specification.allOf(DocumentFilter.createdBetween(filters)));
     }
 
 }

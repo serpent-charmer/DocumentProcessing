@@ -102,6 +102,9 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: changed_by
+                  type: VARCHAR(255)
+              - column:
                   name: comment
                   type: TEXT
               - column:
