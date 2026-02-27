@@ -15,5 +15,5 @@ import java.util.List;
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSpecificationExecutor<Document> {
     Page<Document> findByIdIn(List<Long> ids, Pageable pageable);
-    Slice<Document> findByStatus(DocumentStatus status, Pageable pageable);
+    Page<Document> findByStatus(DocumentStatus status, Pageable pageable);
 }

@@ -46,7 +46,10 @@ public class SubmitBatchWorker {
         );
 
         var slice = repository.findByStatus(DOCUMENT_STATUS, pageRequest);
-
+        var numOfDocs = slice.getTotalElements();
+        if(numOfDocs == 0)
+            return;
+        log.info("Start processing {} documents", numOfDocs);
         count = 0;
 
         while(slice.hasContent()) {
@@ -54,7 +57,6 @@ public class SubmitBatchWorker {
             if(!slice.hasNext()) break;
             slice = repository.findByStatus(DOCUMENT_STATUS, pageRequest);
         }
-        log.info("NO MORE CONTENT");
     }
 
     private void processPage(Slice<Document> page) {

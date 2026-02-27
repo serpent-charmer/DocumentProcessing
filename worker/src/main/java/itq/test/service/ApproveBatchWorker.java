@@ -46,7 +46,10 @@ public class ApproveBatchWorker {
         );
 
         var slice = repository.findByStatus(DOCUMENT_STATUS, pageRequest);
-
+        var numOfDocs = slice.getTotalElements();
+        if(numOfDocs == 0)
+            return;
+        log.info("Start processing {} documents", numOfDocs);
         count = 0;
 
         while(slice.hasContent()) {

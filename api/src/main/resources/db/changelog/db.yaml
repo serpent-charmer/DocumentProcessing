@@ -52,6 +52,26 @@ databaseChangeLog:
                   constraints:
                     nullable: false
 
+        - createIndex:
+            indexName: idx_documents_status
+            tableName: documents
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            indexName: idx_documents_author
+            tableName: documents
+            columns:
+              - column:
+                  name: author
+
+        - createIndex:
+            indexName: idx_documents_created
+            tableName: documents
+            columns:
+              - column:
+                  name: created_at
+
   - changeSet:
       id: 2
       author: developer
