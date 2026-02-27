@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres?stringtype=unspecified
+    url: jdbc:postgresql://172.20.0.5:5432/postgres?stringtype=unspecified
     username: postgres
     driver-class-name: org.postgresql.Driver
 
