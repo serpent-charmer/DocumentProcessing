@@ -22,8 +22,8 @@ dependencies {
 
     implementation("org.liquibase:liquibase-core")
 
-    compileOnly("org.projectlombok:lombok:1.18.30")
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
+    compileOnly("org.projectlombok:lombok:1.18.42")
+    annotationProcessor("org.projectlombok:lombok:1.18.42")
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.20.1")
 
@@ -32,10 +32,4 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
 }
