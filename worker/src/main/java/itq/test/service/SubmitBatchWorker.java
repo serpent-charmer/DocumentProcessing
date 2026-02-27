@@ -45,17 +45,17 @@ public class SubmitBatchWorker {
                 Sort.by("createdAt").ascending()
         );
 
-        var slice = repository.findByStatus(DOCUMENT_STATUS, pageRequest);
-        var numOfDocs = slice.getTotalElements();
+        var page = repository.findByStatus(DOCUMENT_STATUS, pageRequest);
+        var numOfDocs = page.getTotalElements();
         if(numOfDocs == 0)
             return;
         log.info("Start processing {} documents", numOfDocs);
         count = 0;
 
-        while(slice.hasContent()) {
-            processPage(slice);
-            if(!slice.hasNext()) break;
-            slice = repository.findByStatus(DOCUMENT_STATUS, pageRequest);
+        while(page.hasContent()) {
+            processPage(page);
+            if(!page.hasNext()) break;
+            page = repository.findByStatus(DOCUMENT_STATUS, pageRequest);
         }
     }
 
