@@ -25,6 +25,7 @@ public class DocTest {
 
     @Test
     public void test() {
+        //В истории не сохраняется имя изменившего т.к. в тз не было указана таблица для пользователей или система авторизации
         var random = new Random();
         var docName = String.format("%s_%s", TEST_DOC_PLEASE_IGNORE, random.nextInt(1, 999999));
         service.createDocument(docName, "author@mail.com");
